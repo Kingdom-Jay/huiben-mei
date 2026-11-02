@@ -411,6 +411,190 @@ body {
 .info-card.show {
   display: block;
 }
+
+/* 基金持仓列表 */
+.count-badge {
+  margin-left: auto;
+  background: #EEF4FB;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 10px;
+}
+
+.fund-item {
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 10px;
+  background: #FAFBFC;
+}
+
+.fund-item-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.fund-idx {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fund-item-head input {
+  flex: 1;
+  min-width: 0;
+  height: 36px;
+  padding: 0 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  font-size: 14px;
+  background: #fff;
+  outline: none;
+}
+
+.fund-item-head input:focus { border-color: var(--primary); }
+
+.fund-del {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: #FDEAEA;
+  color: var(--danger);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.fund-del:hover { background: #F8D7DA; }
+
+.fund-item-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.fund-field label {
+  display: block;
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.fund-field input {
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  font-size: 14px;
+  background: #fff;
+  outline: none;
+}
+
+.fund-field input:focus { border-color: var(--primary); }
+
+.add-fund-btn {
+  width: 100%;
+  height: 40px;
+  border: 1.5px dashed var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.add-fund-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.fund-empty {
+  text-align: center;
+  color: #B0B8C1;
+  font-size: 13px;
+  padding: 16px 0;
+}
+
+/* 回本情况清单 */
+.result-row {
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.result-row:last-child { margin-bottom: 0; }
+
+.result-row-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.result-row-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.result-row-tag {
+  flex: none;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+
+.result-row-tag.need { background: #FDEAEA; color: var(--danger); }
+.result-row-tag.ok { background: #E8F8F0; color: var(--success); }
+.result-row-tag.warn { background: #FFF3CD; color: #856404; }
+
+.result-row-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.result-row-metrics > div {
+  background: #F5F7FA;
+  border-radius: 6px;
+  padding: 8px 4px;
+  text-align: center;
+}
+
+.result-row-metrics span {
+  display: block;
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-bottom: 2px;
+}
+
+.result-row-metrics b {
+  font-size: 13px;
+  color: var(--text);
+  word-break: break-all;
+}
 </style>
 </head>
 <body>
@@ -429,8 +613,8 @@ body {
     <div class="upload-area" id="uploadArea">
       <span class="upload-icon">&#128196;</span>
       <div class="upload-text">拖拽图片到此处，或点击上传</div>
-      <div class="upload-hint">支持 JPG、PNG 格式，自动识别基金信息</div>
-      <input type="file" id="fileInput" accept="image/*">
+      <div class="upload-hint">支持多张 JPG、PNG 截图，自动识别全部基金</div>
+      <input type="file" id="fileInput" accept="image/*" multiple>
     </div>
     <div class="preview-container" id="previewContainer">
       <img id="previewImg" src="" alt="预览">
@@ -442,25 +626,14 @@ body {
     </div>
   </div>
 
-  <!-- 基金信息表单 -->
+  <!-- 基金持仓列表 -->
   <div class="card">
     <div class="card-title">
-      <span class="icon">&#128221;</span> 基金持仓信息
+      <span class="icon">&#128203;</span> 基金持仓列表
+      <span class="count-badge" id="fundCount">0</span>
     </div>
-    <div class="form-group">
-      <label>基金名称</label>
-      <input type="text" id="fundName" placeholder="例如：易方达蓝筹精选混合">
-    </div>
-    <div class="form-group input-suffix">
-      <label>持有金额（当前市值）</label>
-      <input type="number" id="holdingAmount" placeholder="例如：8000" step="0.01" min="0">
-      <span class="suffix">元</span>
-    </div>
-    <div class="form-group input-suffix">
-      <label>持有收益（亏损请填负数）</label>
-      <input type="number" id="holdingProfit" placeholder="例如：-2000" step="0.01">
-      <span class="suffix">元</span>
-    </div>
+    <div id="fundList"></div>
+    <button class="add-fund-btn" id="addFundBtn">+ 手动添加基金</button>
   </div>
 
   <!-- 投资模式 -->
@@ -504,52 +677,36 @@ body {
   <!-- 计算按钮 -->
   <button class="calc-btn" id="calcBtn">计算回本资金</button>
 
-  <!-- 计算结果（一次性买入模式） -->
-  <div class="result-card" id="resultCardLumpSum">
-    <div class="result-label">需补仓资金</div>
-    <div class="result-value" id="resultNeed">¥ 0.00</div>
+  <!-- 计算结果汇总 -->
+  <div class="result-card" id="resultSummary">
+    <div class="result-label" id="summaryLabel">需补仓资金合计</div>
+    <div class="result-value" id="summaryValue">¥ 0.00</div>
     <div class="result-detail">
       <div class="detail-item">
-        <div class="detail-label">补仓后总成本</div>
-        <div class="detail-value" id="resultTotalCost">¥ 0.00</div>
+        <div class="detail-label">当前亏损合计</div>
+        <div class="detail-value" id="summaryLoss">¥ 0.00</div>
       </div>
       <div class="detail-item">
-        <div class="detail-label">补仓后持仓市值</div>
-        <div class="detail-value" id="resultMarketValue">¥ 0.00</div>
+        <div class="detail-label" id="summaryCostLabel">补仓后总成本</div>
+        <div class="detail-value" id="summaryCost">¥ 0.00</div>
       </div>
       <div class="detail-item">
-        <div class="detail-label">初始投入本金</div>
-        <div class="detail-value" id="resultInitial">¥ 0.00</div>
+        <div class="detail-label">基金只数</div>
+        <div class="detail-value" id="summaryCount">0</div>
       </div>
       <div class="detail-item">
-        <div class="detail-label">当前亏损</div>
-        <div class="detail-value" id="resultLoss">¥ 0.00</div>
+        <div class="detail-label" id="summaryNeedLabel">需补仓只数</div>
+        <div class="detail-value" id="summaryNeedCount">0</div>
       </div>
     </div>
   </div>
 
-  <!-- 计算结果（定投模式） -->
-  <div class="result-card" id="resultCardDCA">
-    <div class="result-label">预计所需天数</div>
-    <div class="result-value" id="resultDays">0 天</div>
-    <div class="result-detail">
-      <div class="detail-item">
-        <div class="detail-label">累计定投金额</div>
-        <div class="detail-value" id="resultDcaTotal">¥ 0.00</div>
-      </div>
-      <div class="detail-item">
-        <div class="detail-label">累计投入本金</div>
-        <div class="detail-value" id="resultDcaCost">¥ 0.00</div>
-      </div>
-      <div class="detail-item">
-        <div class="detail-label">当前持有收益率</div>
-        <div class="detail-value" id="resultCurrentYield">0.00%</div>
-      </div>
-      <div class="detail-item">
-        <div class="detail-label">目标持有收益率</div>
-        <div class="detail-value" id="resultTargetYield">0.00%</div>
-      </div>
+  <!-- 各基金回本情况清单 -->
+  <div class="card" id="resultListCard" style="display:none;">
+    <div class="card-title">
+      <span class="icon">&#128202;</span> 回本情况清单
     </div>
+    <div id="resultList"></div>
   </div>
 
   <!-- 风险提示 -->
@@ -577,9 +734,9 @@ body {
   const ocrSpinner = document.getElementById('ocrSpinner');
   const ocrStatusText = document.getElementById('ocrStatusText');
 
-  const fundNameInput = document.getElementById('fundName');
-  const holdingAmountInput = document.getElementById('holdingAmount');
-  const holdingProfitInput = document.getElementById('holdingProfit');
+  const fundListEl = document.getElementById('fundList');
+  const fundCountEl = document.getElementById('fundCount');
+  const addFundBtn = document.getElementById('addFundBtn');
 
   // 模式专属输入
   const expectedRiseInput = document.getElementById('expectedRise');
@@ -594,24 +751,22 @@ body {
   const calcBtn = document.getElementById('calcBtn');
 
   // 结果卡片
-  const resultCardLumpSum = document.getElementById('resultCardLumpSum');
-  const resultCardDCA = document.getElementById('resultCardDCA');
-  const resultNeed = document.getElementById('resultNeed');
-  const resultTotalCost = document.getElementById('resultTotalCost');
-  const resultMarketValue = document.getElementById('resultMarketValue');
-  const resultInitial = document.getElementById('resultInitial');
-  const resultLoss = document.getElementById('resultLoss');
-  const resultDays = document.getElementById('resultDays');
-  const resultDcaTotal = document.getElementById('resultDcaTotal');
-  const resultDcaCost = document.getElementById('resultDcaCost');
-  const resultCurrentYield = document.getElementById('resultCurrentYield');
-  const resultTargetYield = document.getElementById('resultTargetYield');
+  const resultSummary = document.getElementById('resultSummary');
+  const summaryLabel = document.getElementById('summaryLabel');
+  const summaryValue = document.getElementById('summaryValue');
+  const summaryLoss = document.getElementById('summaryLoss');
+  const summaryCostLabel = document.getElementById('summaryCostLabel');
+  const summaryCost = document.getElementById('summaryCost');
+  const summaryCount = document.getElementById('summaryCount');
+  const summaryNeedLabel = document.getElementById('summaryNeedLabel');
+  const summaryNeedCount = document.getElementById('summaryNeedCount');
+  const resultListCard = document.getElementById('resultListCard');
+  const resultList = document.getElementById('resultList');
 
   const infoCard = document.getElementById('infoCard');
   const toast = document.getElementById('toast');
 
   let currentMode = 'lump-sum';
-  let uploadedFile = null;
 
   // ========== Toast ==========
   let toastTimer;
@@ -645,14 +800,12 @@ body {
   modeDCA.addEventListener('click', () => switchMode('dca'));
 
   function hideAllResults() {
-    resultCardLumpSum.classList.remove('show');
-    resultCardLumpSum.classList.remove('warning');
-    resultCardDCA.classList.remove('show');
-    resultCardDCA.classList.remove('warning');
+    resultSummary.classList.remove('show', 'warning');
+    resultListCard.style.display = 'none';
     infoCard.classList.remove('show');
   }
 
-  // ========== 图片上传 ==========
+  // ========== 图片上传（支持多张） ==========
   uploadArea.addEventListener('click', () => fileInput.click());
 
   uploadArea.addEventListener('dragover', (e) => {
@@ -667,12 +820,12 @@ body {
   uploadArea.addEventListener('drop', (e) => {
     e.preventDefault();
     uploadArea.classList.remove('dragover');
-    const files = e.dataTransfer.files;
-    if (files.length > 0) handleFile(files[0]);
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+    if (files.length > 0) handleFiles(files);
   });
 
   fileInput.addEventListener('change', () => {
-    if (fileInput.files.length > 0) handleFile(fileInput.files[0]);
+    if (fileInput.files.length > 0) handleFiles(Array.from(fileInput.files));
   });
 
   removeBtn.addEventListener('click', (e) => {
@@ -680,24 +833,51 @@ body {
     resetUpload();
   });
 
-  function handleFile(file) {
-    if (!file.type.startsWith('image/')) {
-      showToast('请选择图片文件');
-      return;
-    }
-    uploadedFile = file;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      previewImg.src = e.target.result;
+  function readAsDataURL(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function handleFiles(files) {
+    ocrStatus.classList.add('show');
+    ocrStatus.classList.remove('success', 'error');
+    ocrSpinner.style.display = 'inline-block';
+    ocrStatusText.textContent = '准备识别...';
+    try {
+      previewImg.src = await readAsDataURL(files[files.length - 1]);
       previewContainer.style.display = 'block';
       uploadArea.style.display = 'none';
-      runOCR(file);
-    };
-    reader.readAsDataURL(file);
+
+      let added = 0;
+      for (let i = 0; i < files.length; i++) {
+        ocrStatusText.textContent = `正在识别第 ${i + 1}/${files.length} 张...`;
+        const extracted = await runOCR(files[i]);
+        extracted.forEach(f => funds.push(f));
+        added += extracted.length;
+      }
+      renderFundList();
+      if (added > 0) {
+        ocrStatus.classList.add('success');
+        ocrStatusText.textContent = `共识别到 ${added} 只基金，请核对修正`;
+        showToast(`已识别 ${added} 只基金`);
+      } else {
+        ocrStatus.classList.add('error');
+        ocrStatusText.textContent = '未能识别到基金信息，请手动添加';
+      }
+    } catch (err) {
+      console.error('OCR 失败:', err);
+      ocrStatus.classList.add('error');
+      ocrStatusText.textContent = '识别失败，请手动添加或重试';
+    } finally {
+      ocrSpinner.style.display = 'none';
+    }
   }
 
   function resetUpload() {
-    uploadedFile = null;
     previewImg.src = '';
     previewContainer.style.display = 'none';
     uploadArea.style.display = 'block';
@@ -707,206 +887,330 @@ body {
 
   // ========== OCR 识别 ==========
   async function runOCR(file) {
-    ocrStatus.classList.add('show');
-    ocrStatus.classList.remove('success', 'error');
-    ocrSpinner.style.display = 'inline-block';
-    ocrStatusText.textContent = '正在识别图片中的文字...';
-
-    try {
-      const { data: { text } } = await Tesseract.recognize(file, 'chi_sim', {
-        logger: (m) => {
-          if (m.status === 'recognizing text') {
-            const pct = Math.round(m.progress * 100);
-            ocrStatusText.textContent = `正在识别中... ${pct}%`;
-          }
+    const { data: { text } } = await Tesseract.recognize(file, 'chi_sim', {
+      logger: (m) => {
+        if (m.status === 'recognizing text') {
+          ocrStatusText.textContent = `正在识别中... ${Math.round(m.progress * 100)}%`;
         }
-      });
-
-      console.log('OCR 识别结果:', text);
-      const extracted = extractFundInfo(text);
-
-      if (extracted.fundName) fundNameInput.value = extracted.fundName;
-      if (extracted.holdingAmount) holdingAmountInput.value = extracted.holdingAmount;
-      if (extracted.holdingProfit !== null) holdingProfitInput.value = extracted.holdingProfit;
-
-      const filled = [extracted.fundName, extracted.holdingAmount, extracted.holdingProfit !== null].filter(Boolean).length;
-      if (filled > 0) {
-        ocrStatus.classList.add('success');
-        ocrStatusText.textContent = `已自动识别 ${filled} 项信息，请核对后手动修正`;
-        showToast(`已识别 ${filled} 项信息`);
-      } else {
-        ocrStatus.classList.add('error');
-        ocrStatusText.textContent = '未能识别到基金信息，请手动输入';
       }
-    } catch (err) {
-      console.error('OCR 失败:', err);
-      ocrStatus.classList.add('error');
-      ocrStatusText.textContent = '识别失败，请手动输入或重试';
-    } finally {
-      ocrSpinner.style.display = 'none';
-    }
+    });
+    console.log('OCR 原始文本:', text);
+    return extractAllFunds(text);
   }
 
-  function extractFundInfo(text) {
-    const result = { fundName: null, holdingAmount: null, holdingProfit: null };
+  // ========== 多基金提取 ==========
+  const NAME_RE = /[\u4e00-\u9fa5]{2,12}(?:精选|蓝筹|成长|价值|红利|稳健|灵活|优选|增强|量化|混合|股票|债券|指数|ETF|联接|LOF|QDII|FOF)[\u4e00-\u9fa5A-Za-z]*/;
+  const TAG_RE = /金选|定投|极速交易|自选|金额排序|我的持有|产品提醒|申购|限额/;
+  const AMOUNT_KW = /(持有金额|持仓金额|持有市值|持仓市值|最新市值|资产净值|市值)/;
+  const PROFIT_KW = /(持有收益(?!率)|累计收益(?!率)|持仓收益(?!率)|浮动收益|持有盈亏|盈亏(?!率))/;
 
-    // 提取基金名称：匹配常见模式
-    const namePatterns = [
-      /([\u4e00-\u9fa5]{2,10}(?:精选|蓝筹|成长|价值|红利|稳健|灵活|混合|股票|债券|指数|ETF|联接|LOF|QDII|FOF)[\u4e00-\u9fa5A-Za-z]*)/,
-      /([\u4e00-\u9fa5]{3,20}(?:混合|股票|债券|指数|货币|基金|ETF)[\u4e00-\u9fa5A-Za-z]*(?:\s*[A-C]\d{4,6})?)/,
-      /([\u4e00-\u9fa5]{3,20}(?:混合|股票|债券|指数|货币|基金|ETF))/,
-    ];
-    for (const pat of namePatterns) {
-      const m = text.match(pat);
-      if (m) { result.fundName = m[1].trim(); break; }
-    }
-
-    // 提取持有金额：匹配关键词后的数字
-    const amountKeywords = ['持有金额', '持仓金额', '市值', '持有市值', '持仓市值', '最新市值', '资产净值'];
-    const amountPattern = new RegExp(`(?:${amountKeywords.join('|')})[^\\d]*(\\d{1,3}(?:[,，]\\d{3})*(?:\\.\\d{1,2})?)`, 'i');
-    const amtMatch = text.match(amountPattern);
-    if (amtMatch) {
-      result.holdingAmount = parseFloat(amtMatch[1].replace(/[,，]/g, ''));
-    }
-
-    // 提取持有收益：匹配关键词后的数字（含负号）
-    const profitKeywords = ['持有收益', '累计收益', '持仓收益', '盈亏', '浮动收益', '持有盈亏'];
-    const profitPattern = new RegExp(`(?:${profitKeywords.join('|')})[^\\d-]*(-?\\d{1,3}(?:[,，]\\d{3})*(?:\\.\\d{1,2})?)`, 'i');
-    const profitMatch = text.match(profitPattern);
-    if (profitMatch) {
-      result.holdingProfit = parseFloat(profitMatch[1].replace(/[,，]/g, ''));
-    }
-
-    return result;
+  function kwNumber(line, kwRe) {
+    const m = line.match(kwRe);
+    if (!m) return null;
+    const rest = line.slice(m.index + m[0].length);
+    const nm = rest.match(/-?\d+(?:[,，]\d{3})*(?:\.\d+)?/);
+    return nm ? parseFloat(nm[0].replace(/[,，]/g, '')) : null;
   }
 
-  // ========== 通用校验 ==========
-  function validateBase() {
-    const M = parseFloat(holdingAmountInput.value);
-    const P = parseFloat(holdingProfitInput.value);
+  function plainNumbers(line) {
+    // 剔除百分数（收益率），避免与收益金额混淆
+    const cleaned = line.replace(/-?\d+(?:\.\d+)?\s*[%％]/g, ' ');
+    const out = [];
+    const re = /-?\d+(?:[,，]\d{3})*(?:\.\d+)?/g;
+    let m;
+    while ((m = re.exec(cleaned)) !== null) out.push(parseFloat(m[0].replace(/[,，]/g, '')));
+    return out;
+  }
 
-    if (isNaN(M) || M <= 0) {
-      showToast('请输入有效的持有金额');
-      return null;
+  // 去掉数字与百分号，只留文字部分（用于名称判断）
+  function cleanText(line) {
+    return line.replace(/-?\d+(?:[,，]\d{3})*(?:\.\d+)?/g, '').replace(/[%％]/g, '').trim();
+  }
+
+  // OCR 中文常逐字带空格（如“天 弘 国 证 绿色 电力 ETF”），
+  // 归一化：删除与汉字相邻的空白，保留数字之间的空白以分隔金额
+  function normalizeLine(line) {
+    return line
+      .replace(/([\u4e00-\u9fa5])[ \t]+/g, '$1')
+      .replace(/[ \t]+([\u4e00-\u9fa5])/g, '$1')
+      .trim();
+  }
+
+  function extractAllFunds(text) {
+    const lines = text.split(/\r?\n/).map(l => normalizeLine(l)).filter(Boolean);
+    const results = [];
+
+    // 按基金名称行分组：每个名称行到下一个名称行之间为一个持仓块
+    const nameIdx = [];
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (TAG_RE.test(line)) continue;
+      if (NAME_RE.test(line)) { nameIdx.push(i); continue; }
+      // 跨行名称：本行文字部分纯中文、下一行含名称关键词时，两行合并为一个名称块
+      if (/^[\u4e00-\u9fa5]{4,}$/.test(cleanText(line)) && i + 1 < lines.length &&
+          !TAG_RE.test(lines[i + 1]) && NAME_RE.test(lines[i + 1])) {
+        nameIdx.push(i);
+        i++; // 下一行并入本块，不再单独成块
+      }
     }
-    if (isNaN(P)) {
-      showToast('请输入有效的持有收益（亏损请填负数）');
-      return null;
+
+    nameIdx.forEach((start, k) => {
+      const end = k + 1 < nameIdx.length ? nameIdx[k + 1] : Math.min(start + 8, lines.length);
+      const windowLines = lines.slice(start, end);
+
+      let name = (windowLines[0].match(NAME_RE) || [null])[0] || cleanText(windowLines[0]);
+      // 第二行若是份额后缀或名称续行（如“联接C”“现金流指数C”，可能带列尾数字），拼接到名称
+      const second = windowLines[1];
+      if (second) {
+        const sec = cleanText(second);
+        if (sec && sec.length <= 12 && !TAG_RE.test(second) && !TAG_RE.test(sec) &&
+            (/^(联接|混合|股票|指数)[A-C]$/.test(sec) || /^[\(（]?QDII[\)）]?[A-C]$/.test(sec) || NAME_RE.test(sec))) {
+          name += sec;
+        }
+      }
+
+      let amount = null, profit = null;
+      // 优先关键词提取
+      for (const line of windowLines) {
+        if (amount === null) { const v = kwNumber(line, AMOUNT_KW); if (v !== null) amount = v; }
+        if (profit === null) { const v = kwNumber(line, PROFIT_KW); if (v !== null) profit = v; }
+      }
+      // 兜底：按位置取数（第一个正数=金额，第一个负数=收益）
+      if (amount === null || profit === null) {
+        const nums = [];
+        windowLines.forEach(line => plainNumbers(line).forEach(n => nums.push(n)));
+        if (amount === null) { const v = nums.find(n => n > 0); if (v !== undefined) amount = v; }
+        if (profit === null) { const v = nums.find(n => n < 0); if (v !== undefined) profit = v; }
+      }
+
+      if (amount !== null && amount > 0) {
+        results.push({ name: name.trim(), amount, profit: profit === null ? 0 : profit });
+      }
+    });
+
+    // 兜底：无名称行时按关键词配对分组
+    if (results.length === 0) {
+      let amount = null, profit = null, idx = 0;
+      for (const line of lines) {
+        const a = kwNumber(line, AMOUNT_KW);
+        const p = kwNumber(line, PROFIT_KW);
+        if (a !== null) amount = a;
+        if (p !== null) profit = p;
+        if (amount !== null && profit !== null) {
+          idx++;
+          results.push({ name: '基金' + idx, amount, profit });
+          amount = null; profit = null;
+        }
+      }
+    }
+
+    return results;
+  }
+
+  // ========== 基金列表管理 ==========
+  let funds = [];
+
+  function addFund(data) {
+    funds.push({
+      name: (data && data.name) || '',
+      amount: (data && data.amount !== undefined && data.amount !== null) ? data.amount : '',
+      profit: (data && data.profit !== undefined && data.profit !== null) ? data.profit : '',
+    });
+    renderFundList();
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function renderFundList() {
+    fundCountEl.textContent = funds.length;
+    if (funds.length === 0) {
+      fundListEl.innerHTML = '<div class="fund-empty">暂无基金，请上传截图或点击下方按钮手动添加</div>';
+      return;
+    }
+    fundListEl.innerHTML = funds.map((f, i) => `
+      <div class="fund-item">
+        <div class="fund-item-head">
+          <span class="fund-idx">${i + 1}</span>
+          <input type="text" class="fund-name" data-idx="${i}" placeholder="基金名称" value="${escapeHtml(f.name)}">
+          <button class="fund-del" data-idx="${i}" title="删除该基金">&times;</button>
+        </div>
+        <div class="fund-item-body">
+          <div class="fund-field">
+            <label>持有金额（元）</label>
+            <input type="number" class="fund-amount" data-idx="${i}" step="0.01" placeholder="3423.78" value="${escapeHtml(f.amount)}">
+          </div>
+          <div class="fund-field">
+            <label>持有收益（元，亏损为负）</label>
+            <input type="number" class="fund-profit" data-idx="${i}" step="0.01" placeholder="-163.94" value="${escapeHtml(f.profit)}">
+          </div>
+        </div>
+      </div>`).join('');
+  }
+
+  function syncFundsFromDOM() {
+    fundListEl.querySelectorAll('.fund-item').forEach((item, i) => {
+      if (!funds[i]) return;
+      funds[i].name = item.querySelector('.fund-name').value;
+      funds[i].amount = item.querySelector('.fund-amount').value;
+      funds[i].profit = item.querySelector('.fund-profit').value;
+    });
+  }
+
+  fundListEl.addEventListener('click', (e) => {
+    const del = e.target.closest('.fund-del');
+    if (del) {
+      syncFundsFromDOM();
+      funds.splice(parseInt(del.dataset.idx, 10), 1);
+      renderFundList();
+    }
+  });
+
+  fundListEl.addEventListener('input', () => {
+    syncFundsFromDOM();
+    if (resultSummary.classList.contains('show')) calculate();
+  });
+
+  addFundBtn.addEventListener('click', () => addFund(null));
+
+  // ========== 单只基金回本计算 ==========
+  function computeFund(fund, mode, params) {
+    const name = (fund.name || '').trim() || '未命名基金';
+    const M = parseFloat(fund.amount);
+    const P = parseFloat(fund.profit);
+
+    if (isNaN(M) || M <= 0 || isNaN(P)) {
+      return { name, status: 'incomplete', tag: '信息不全', tagClass: 'warn', metrics: [] };
     }
 
     const I = M - P; // 初始投入本金
-    if (I <= 0) {
-      showToast('当前已盈利，无需补仓或摊薄');
-      return null;
-    }
-    return { M, P, I };
-  }
-
-  // ========== 一次性买入：计算回本所需补仓资金 ==========
-  function calculateLumpSum() {
-    const base = validateBase();
-    if (!base) return;
-    const { M, P, I } = base;
-
-    const rPct = parseFloat(expectedRiseInput.value);
-    if (isNaN(rPct) || rPct <= 0) {
-      showToast('请输入有效的预期涨幅（大于0）');
-      return;
+    if (P >= 0 || I <= 0) {
+      return {
+        name, status: 'ok', tag: '已盈利，无需补仓', tagClass: 'ok', loss: 0, need: 0, cost: I > 0 ? I : M,
+        metrics: [
+          ['当前盈利', '¥ ' + formatMoney(P)],
+          ['持有金额', '¥ ' + formatMoney(M)],
+          ['需补仓', '¥ 0.00'],
+        ],
+      };
     }
 
-    const r = rPct / 100;
-
-    // 公式: X = (|P| - M * r) / r
-    const lossAmount = P < 0 ? Math.abs(P) : 0;
-    const X = (lossAmount - M * r) / r;
-
-    if (X <= 0) {
-      // 涨幅足够覆盖亏损 -> 无需补仓
-      resultNeed.textContent = '无需补仓';
-      resultTotalCost.textContent = '¥ ' + formatMoney(I);
-      resultMarketValue.textContent = '¥ ' + formatMoney(M * (1 + r));
-      resultInitial.textContent = '¥ ' + formatMoney(I);
-      resultLoss.textContent = P < 0 ? ('-¥ ' + formatMoney(Math.abs(P))) : ('¥ ' + formatMoney(P));
-      resultCardLumpSum.classList.add('warning');
-      resultCardLumpSum.classList.add('show');
-      infoCard.classList.add('show');
-      showToast('预期涨幅足以覆盖亏损，无需补仓');
-      return;
+    if (mode === 'lump-sum') {
+      const r = params.r;
+      // 公式: X = (|P| - M * r) / r
+      const X = (Math.abs(P) - M * r) / r;
+      if (X <= 0) {
+        return {
+          name, status: 'ok', tag: '无需补仓', tagClass: 'ok', loss: Math.abs(P), need: 0, cost: I,
+          metrics: [
+            ['当前亏损', '-¥ ' + formatMoney(Math.abs(P))],
+            ['需补仓', '¥ 0.00'],
+            ['上涨后市值', '¥ ' + formatMoney(M * (1 + r))],
+          ],
+        };
+      }
+      return {
+        name, status: 'need', tag: '需补仓', tagClass: 'need', loss: Math.abs(P), need: X, cost: I + X,
+        metrics: [
+          ['当前亏损', '-¥ ' + formatMoney(Math.abs(P))],
+          ['需补仓', '¥ ' + formatMoney(X)],
+          ['补仓后总成本', '¥ ' + formatMoney(I + X)],
+        ],
+      };
     }
 
-    const totalCost = I + X;
-    const marketValue = (M + X) * (1 + r);
-
-    resultNeed.textContent = '¥ ' + formatMoney(X);
-    resultTotalCost.textContent = '¥ ' + formatMoney(totalCost);
-    resultMarketValue.textContent = '¥ ' + formatMoney(marketValue);
-    resultInitial.textContent = '¥ ' + formatMoney(I);
-    resultLoss.textContent = P < 0 ? ('-¥ ' + formatMoney(Math.abs(P))) : ('¥ ' + formatMoney(P));
-
-    resultCardLumpSum.classList.remove('warning');
-    resultCardLumpSum.classList.add('show');
-    infoCard.classList.add('show');
-  }
-
-  // ========== 定投模式：计算摊薄到目标收益率所需天数 ==========
-  function calculateDCA() {
-    const base = validateBase();
-    if (!base) return;
-    const { M, P, I } = base;
-
-    const D = parseFloat(dailyAmountInput.value);
-    const tPct = parseFloat(targetYieldInput.value);
-
-    if (isNaN(D) || D <= 0) {
-      showToast('请输入有效的每日定投金额');
-      return;
-    }
-    if (isNaN(tPct) || tPct >= 0) {
-      showToast('目标持有收益率必须为负数（亏损状态）');
-      return;
-    }
-
-    const rTarget = tPct / 100;
-    const rCurrent = P / I; // 当前持有收益率
-
+    // 定投模式: n = (P / rTarget - I) / D
+    const rTarget = params.rTarget;
+    const rCurrent = P / I;
     if (rTarget <= rCurrent) {
-      showToast('目标收益率必须优于（高于）当前收益率');
-      return;
+      return {
+        name, status: 'ok', tag: '已达目标收益率', tagClass: 'ok', loss: Math.abs(P), need: 0, cost: I,
+        metrics: [
+          ['当前收益率', (rCurrent * 100).toFixed(2) + '%'],
+          ['所需天数', '0 天'],
+          ['累计定投', '¥ 0.00'],
+        ],
+      };
     }
-
-    // 假设单位净值不变：r_target = P / (I + n*D)
-    // => I + n*D = P / r_target
-    // => n = (P / r_target - I) / D
-    const n = (P / rTarget - I) / D;
-
-    if (n <= 0) {
-      showToast('输入异常，无法计算所需天数');
-      return;
+    const n = (P / rTarget - I) / params.D;
+    if (!(n > 0)) {
+      return { name, status: 'incomplete', tag: '计算异常', tagClass: 'warn', metrics: [] };
     }
-
     const days = Math.ceil(n);
-    const dcaTotal = D * days;
-    const totalCost = I + dcaTotal;
-
-    resultDays.textContent = days + ' 天';
-    resultDcaTotal.textContent = '¥ ' + formatMoney(dcaTotal);
-    resultDcaCost.textContent = '¥ ' + formatMoney(totalCost);
-    resultCurrentYield.textContent = (rCurrent * 100).toFixed(2) + '%';
-    resultTargetYield.textContent = (rTarget * 100).toFixed(2) + '%';
-
-    resultCardDCA.classList.remove('warning');
-    resultCardDCA.classList.add('show');
-    infoCard.classList.add('show');
+    const dcaTotal = params.D * days;
+    return {
+      name, status: 'need', tag: '需定投', tagClass: 'need', loss: Math.abs(P), need: dcaTotal, cost: I + dcaTotal,
+      metrics: [
+        ['当前收益率', (rCurrent * 100).toFixed(2) + '%'],
+        ['所需天数', days + ' 天'],
+        ['累计定投', '¥ ' + formatMoney(dcaTotal)],
+      ],
+    };
   }
 
-  // ========== 统一入口 ==========
+  // ========== 统一入口：计算所有基金的回本情况 ==========
   function calculate() {
+    syncFundsFromDOM();
     hideAllResults();
-    if (currentMode === 'lump-sum') {
-      calculateLumpSum();
-    } else {
-      calculateDCA();
+
+    if (funds.length === 0) {
+      showToast('请先上传截图或添加至少一只基金');
+      return;
     }
+
+    let params;
+    if (currentMode === 'lump-sum') {
+      const rPct = parseFloat(expectedRiseInput.value);
+      if (isNaN(rPct) || rPct <= 0) { showToast('请输入有效的预期涨幅（大于0）'); return; }
+      params = { r: rPct / 100 };
+    } else {
+      const D = parseFloat(dailyAmountInput.value);
+      const tPct = parseFloat(targetYieldInput.value);
+      if (isNaN(D) || D <= 0) { showToast('请输入有效的每日定投金额'); return; }
+      if (isNaN(tPct) || tPct >= 0) { showToast('目标持有收益率必须为负数（亏损状态）'); return; }
+      params = { D, rTarget: tPct / 100 };
+    }
+
+    const rows = funds.map(f => computeFund(f, currentMode, params));
+
+    // 渲染逐基金清单
+    resultList.innerHTML = rows.map(row => `
+      <div class="result-row">
+        <div class="result-row-head">
+          <span class="result-row-name">${escapeHtml(row.name)}</span>
+          <span class="result-row-tag ${row.tagClass}">${row.tag}</span>
+        </div>
+        ${row.metrics.length ? '<div class="result-row-metrics">' + row.metrics.map(m => '<div><span>' + m[0] + '</span><b>' + m[1] + '</b></div>').join('') + '</div>' : ''}
+      </div>`).join('');
+    resultListCard.style.display = 'block';
+
+    // 汇总
+    const valid = rows.filter(r => r.status !== 'incomplete');
+    const totalLoss = valid.reduce((s, r) => s + (r.loss || 0), 0);
+    const totalNeed = valid.reduce((s, r) => s + (r.need || 0), 0);
+    const totalCost = valid.reduce((s, r) => s + (r.cost || 0), 0);
+    const needCount = valid.filter(r => r.status === 'need').length;
+
+    if (currentMode === 'lump-sum') {
+      summaryLabel.textContent = '需补仓资金合计';
+      summaryValue.textContent = totalNeed > 0 ? ('¥ ' + formatMoney(totalNeed)) : '无需补仓';
+      summaryCostLabel.textContent = '补仓后总成本';
+      summaryNeedLabel.textContent = '需补仓只数';
+    } else {
+      summaryLabel.textContent = '累计定投合计';
+      summaryValue.textContent = totalNeed > 0 ? ('¥ ' + formatMoney(totalNeed)) : '无需定投';
+      summaryCostLabel.textContent = '累计投入成本';
+      summaryNeedLabel.textContent = '需定投只数';
+    }
+    summaryLoss.textContent = '-¥ ' + formatMoney(totalLoss);
+    summaryCost.textContent = '¥ ' + formatMoney(totalCost);
+    summaryCount.textContent = funds.length + ' 只';
+    summaryNeedCount.textContent = needCount + ' 只';
+
+    if (needCount === 0) resultSummary.classList.add('warning');
+    resultSummary.classList.add('show');
+    infoCard.classList.add('show');
   }
 
   function formatMoney(num) {
@@ -923,15 +1227,15 @@ body {
     }
   });
 
-  // ========== 输入时实时更新结果 ==========
-  const allInputs = [holdingAmountInput, holdingProfitInput, expectedRiseInput, dailyAmountInput, targetYieldInput];
-  allInputs.forEach(input => {
+  // ========== 参数输入时实时更新结果 ==========
+  [expectedRiseInput, dailyAmountInput, targetYieldInput].forEach(input => {
     input.addEventListener('input', () => {
-      if (resultCardLumpSum.classList.contains('show') || resultCardDCA.classList.contains('show')) {
-        calculate();
-      }
+      if (resultSummary.classList.contains('show')) calculate();
     });
   });
+
+  // 初始渲染空列表
+  renderFundList();
 
 })();
 </script>
